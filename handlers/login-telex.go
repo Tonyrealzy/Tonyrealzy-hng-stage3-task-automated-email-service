@@ -31,14 +31,7 @@ func sendWebhookNotification(payload gin.H, webhook string) {
 	if webhook == "" {
 		log.Println("No webhook URL provided, skipping notification.")
 	} else {
-		// resp, err := http.Post(webhook, "application/json", bytes.NewBuffer(jsonData))
-		// if err != nil {
-		// 	log.Println("Error sending webhook request:", err)
-		// 	return
-		// }
-		// defer resp.Body.Close()
-
-		client := &http.Client{Timeout: 5 * time.Second}
+		client := &http.Client{Timeout: 15 * time.Second}
 		req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(jsonData))
 		if err != nil {
 			log.Println("Error creating webhook request:", err)
@@ -118,10 +111,14 @@ func LoginTelex(c *gin.Context) {
 		response := gin.H{"status": "success", "message": "Login successful. Email monitoring started. New inbox mails would receive automated responses.", "username": "Automated Email Service", "event_name": "Handling Emails"}
 		sendWebhookNotification(response, webhook)
 		c.JSON(http.StatusOK, response)
-	} else {
+	} else if formattedMessage != "/start-mail" && formattedMessage != "" {
 		log.Println("Type /start-mail to start email monitoring service.")
 		response := gin.H{"status": "error", "message": "Type /start-mail to start email monitoring service.", "username": "Automated Email Service", "event_name": "Handling Emails"}
 		sendWebhookNotification(response, webhook)
+		c.JSON(http.StatusBadRequest, response)
+	} else {
+		log.Println("Type /start-mail to start email monitoring service.")
+		response := gin.H{"status": "error", "message": "Type /start-mail to start email monitoring service.", "username": "Automated Email Service", "event_name": "Handling Emails"}
 		c.JSON(http.StatusBadRequest, response)
 	}
 }
