@@ -23,7 +23,6 @@ type Setting struct {
 	Default  string `json:"default"`
 }
 
-var once sync.Once
 
 func sendWebhookNotification(payload gin.H, webhook string, once *sync.Once) {
 	once.Do(func() {
@@ -95,7 +94,13 @@ func LoginTelex(c *gin.Context) {
 
 	var once sync.Once
 
-	if formattedMessage == "/start-mail" {
+	if formattedMessage == "" {
+		log.Println("Type /start-mail to start email monitoring service.")
+		response := gin.H{"status": "error", "message": "Type /start-mail to start email monitoring service.", "username": "Automated Email Service", "event_name": "Handling Emails"}
+		sendWebhookNotification(response, webhook, &once)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	} else if formattedMessage == "/start-mail" {
 		if username == "" || email == "" || password == "" {
 			response := gin.H{"message": "Login failed. Ensure username, email and password are set.", "status": "error", "username": "Automated Email Service", "event_name": "Handling Emails"}
 			sendWebhookNotification(response, webhook, &once)
@@ -119,12 +124,6 @@ func LoginTelex(c *gin.Context) {
 		response := gin.H{"status": "success", "message": "Login successful. Email monitoring started. New inbox mails would receive automated responses.", "username": "Automated Email Service", "event_name": "Handling Emails"}
 		sendWebhookNotification(response, webhook, &once)
 		c.JSON(http.StatusOK, response)
-		return
-	} else if formattedMessage != "/start-mail" && formattedMessage != "" {
-		log.Println("Type /start-mail to start email monitoring service.")
-		response := gin.H{"status": "error", "message": "Type /start-mail to start email monitoring service.", "username": "Automated Email Service", "event_name": "Handling Emails"}
-		sendWebhookNotification(response, webhook, &once)
-		c.JSON(http.StatusBadRequest, response)
 		return
 	} else {
 		log.Println("Type /start-mail to start email monitoring service.")
