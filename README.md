@@ -101,7 +101,7 @@ with the following payload parameters:
       "type": "text"
     },
     {
-      "default": "https://ping.telex.im/v1/webhooks/019533db-f47e-7d2e-8812-eea65373376a",
+      "default": "your-channel-webhook",
       "label": "webhook",
       "required": true,
       "type": "text"
